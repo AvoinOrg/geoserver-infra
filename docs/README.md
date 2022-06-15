@@ -27,7 +27,10 @@ Then
 
 docker network-create proxy-net
 
-### Certbot create
+### Certbot
+Create geoserver-infra/certbot folder with chmod -R 755
+
+Use geoserver.conf.template.certbot and run
 
     certbot certonly --webroot --webroot-path /home/avoin/geoserver-infra/certbot --debug-challenges -d geoserver.avoin.org --post-hook "bash --login -c 'cd /home/avoin/geoserver-infra && docker-compose up --build --force-recreate -d'"
 

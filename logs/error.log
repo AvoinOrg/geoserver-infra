@@ -1,0 +1,20 @@
+2020/09/16 12:45:35 [notice] 1#1: using the "epoll" event method
+2020/09/16 12:45:35 [notice] 1#1: using the "epoll" event method
+2020/09/16 12:45:35 [notice] 1#1: nginx/1.19.1 (Ubuntu)
+2020/09/16 12:45:35 [notice] 1#1: nginx/1.19.1 (Ubuntu)
+2020/09/16 12:45:35 [notice] 1#1: built by gcc 9.3.0 (Ubuntu 9.3.0-10ubuntu2) 
+2020/09/16 12:45:35 [notice] 1#1: built by gcc 9.3.0 (Ubuntu 9.3.0-10ubuntu2) 
+2020/09/16 12:45:35 [notice] 1#1: OS: Linux 4.15.0-45-generic
+2020/09/16 12:45:35 [notice] 1#1: OS: Linux 4.15.0-45-generic
+2020/09/16 12:45:35 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2020/09/16 12:45:35 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2020/09/16 12:45:35 [notice] 1#1: start worker processes
+2020/09/16 12:45:35 [notice] 1#1: start worker processes
+2020/09/16 12:45:35 [notice] 1#1: start worker process 7
+2020/09/16 12:45:35 [notice] 1#1: start worker process 7
+2021/05/02 13:56:58 [emerg] 1#1: host not found in upstream "climate-map-node:8080" in /etc/nginx/conf.d/server.avoin.org.conf:2
+2021/05/03 10:42:35 [emerg] 1#1: host not found in upstream "climate-map-node:8080" in /etc/nginx/conf.d/server.avoin.org.conf:2
+2021/05/03 10:43:59 [emerg] 1#1: host not found in upstream "climate-map-node:8080" in /etc/nginx/conf.d/server.avoin.org.conf:2
+2021/05/03 10:44:46 [emerg] 1#1: host not found in upstream "climate-map-node:8080" in /etc/nginx/conf.d/server.avoin.org.conf:2
+2021/05/03 10:50:19 [emerg] 1#1: host not found in upstream "climate-map-node:8080" in /etc/nginx/conf.d/server.avoin.org.conf:2
+2021/05/03 10:53:00 [emerg] 1#1: cannot load certificate "/etc/letsencrypt/live/server.avoin.org/fullchain.pem": PEM_read_bio_X509_AUX() failed (SSL: error:0909006C:PEM routines:get_name:no start line:Expecting: TRUSTED CERTIFICATE)

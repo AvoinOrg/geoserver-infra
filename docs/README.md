@@ -23,6 +23,14 @@ Then
     systemctl daemon-reload
     systemctl restart docker
 
-### Bi-daily cronjob for cert renewal
+### Create the network
+
+docker network-create proxy-net
+
+### Certbot create
+
+    certbot certonly --webroot --webroot-path /home/avoin/geoserver-infra/certbot --debug-challenges -d geoserver.avoin.org --post-hook "bash --login -c 'cd /home/avoin/geoserver-infra && docker-compose up --build --force-recreate -d'"
+
+### Bi-daily certbot renewal crontab
 
     0 */12 * * * certbot renew --post-hook "runuser -l avoin -c 'docker-compose -f /home/avoin/geoserver-infra/docker-compose.yml restart'"

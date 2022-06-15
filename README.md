@@ -22,12 +22,4 @@ Docker-compose uses the following env variables:
     POSTGIS_URL
 
 
-Cerbot create
-
-    certbot certonly --webroot --webroot-path /home/avoin/geoserver-infra/certbot --debug-challenges -d geoserver.avoin.org --post-hook "bash --login -c 'cd /home/avoin/geoserver-infra && docker-compose up --build --force-recreate -d'"
-
-Certbot crontab
-
-    0 */12 * * * certbot renew --post-hook "runuser -l avoin -c 'docker-compose -f /home/avoin/geoserver-infra/docker-compose.yml restart'"
-
 These can be set in an .env file in the root folder.

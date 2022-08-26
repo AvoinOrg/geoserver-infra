@@ -1,6 +1,4 @@
-FROM nginx:latest
-
-ENV GEO_PORT=${GEO_PORT}
+FROM nginx:1.23.1
 
 COPY ./config/ /etc/nginx/
 

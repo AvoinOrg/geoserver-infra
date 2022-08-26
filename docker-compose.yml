@@ -51,18 +51,12 @@ services:
     depends_on:
       - postgis
     volumes:
-      - ${AVOIN_DATA_PATH}:${GEOSERVER_DATA_DIR}
+      - ${AVOIN_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
     ports:
       - ${GEOSERVER_PORT}:8080
     restart: unless-stopped
-    environment:
-      # - GEOSERVER_DATA_DIR=${GEOSERVER_DATA_DIR}
-      # - GEOWEBCACHE_CACHE_DIR=${GEOWEBCACHE_CACHE_DIR}
-      - GEOSERVER_ADMIN_PASSWORD=${GEOSERVER_ADMIN_PASSWORD}
-      - GEOSERVER_ADMIN_USER=${GEOSERVER_ADMIN_USER}
-      - TOMCAT_EXTRAS=${TOMCAT_EXTRAS}
-      - INITIAL_MEMORY=${INITIAL_MEMORY}
-      - MAXIMUM_MEMORY=${MAXIMUM_MEMORY}
+    env_file:
+      - ./.env
     healthcheck:
       test: curl --fail -s http://localhost:8080/ || exit 1
       interval: 1m30s

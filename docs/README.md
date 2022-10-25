@@ -37,3 +37,22 @@ Use geoserver.conf.template.certbot and run
 ### Bi-daily certbot renewal crontab
 
     0 */12 * * * certbot renew --post-hook "bash --login -c 'docker-compose -f /home/avoin/geoserver-infra/docker-compose.yml restart'"
+
+
+### Mount an S3 bucket
+
+    sudo apt-get install s3fs
+
+    echo ACCESS_KEY_ID:SECRET_ACCESS_KEY > ${HOME}/.passwd-s3fs
+    chmod 600 ${HOME}/.passwd-s3fs
+
+    s3fs mybucket /path/to/mountpoint -o passwd_file=${HOME}/.passwd-s3fs -o allow_other -o umask=0000
+
+You can also mount on boot by entering the following line to /etc/fstab:
+
+    mybucket /path/to/mountpoint fuse.s3fs _netdev,allow_other,umask=0000,errors=remount 0 0
+
+
+To unmount a bucket
+
+    umount -l path

@@ -1,11 +1,11 @@
-version: "3"
+version: "3.8"
 
 services:
   nginx:
-    image: nginx:1.23.1
+    image: nginx:${NGINX_VERSION}
     container_name: nginx
     env_file:
-      - ./.env
+      - .env
     ports:
       - 80:80
       - 443:443
@@ -13,50 +13,50 @@ services:
       - ./certbot:/var/www/certbot
       - ${AVOIN_LOGS_PATH}:/var/log/nginx
       - ./nginx/templates:/etc/nginx/templates
-      - /etc/letsencrypt/live/gis.avoin.org/fullchain.pem:/etc/letsencrypt/live/gis.avoin.org/fullchain.pem
-      - /etc/letsencrypt/live/gis.avoin.org/privkey.pem:/etc/letsencrypt/live/gis.avoin.org/privkey.pem
+      - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
+      - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
     networks:
       - proxy-net
     restart: unless-stopped
 
   postgis:
-    build: ../docker-postgis
+    image: kartoza/postgis:${POSTGRES_VERSION}
     container_name: postgis
+    env_file:
+      - .env
     volumes:
-      - /etc/letsencrypt/live/gis.avoin.org/fullchain.pem:/etc/letsencrypt/live/gis.avoin.org/fullchain.pem
-      - /etc/letsencrypt/live/gis.avoin.org/privkey.pem:/etc/letsencrypt/live/gis.avoin.org/privkey.pem
-      - /etc/letsencrypt/live/gis.avoin.org/server.crt:/etc/letsencrypt/live/gis.avoin.org/server.crt
+      - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
+      - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
+      - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
       - /mnt/postgis-data:/var/lib/postgresql
     ports:
       - ${POSTGRES_PORT}:5432
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASS=${POSTGRES_PASS}
       - FORCE_SSL=FALSE
-      - SSL_DIR=/etc/letsencrypt/live/gis.avoin.org
-      - SSL_CERT_FILE=/etc/letsencrypt/live/gis.avoin.org/fullchain.pem
-      - SSL_KEY_FILE=/etc/letsencrypt/live/gis.avoin.org/privkey.pem
-      - SSL_CA_FILE=/etc/letsencrypt/live/gis.avoin.org/server.crt
+      - SSL_DIR=${CERT_DIR}
+      - SSL_CERT_FILE=${CERT_DIR}/fullchain.pem
+      - SSL_KEY_FILE=${CERT_DIR}/privkey.pem
+      - SSL_CA_FILE=${CERT_DIR}/server.crt
     restart: unless-stopped
     healthcheck:
       test: "exit 0"
     networks:
       - proxy-net
-    shm_size: 4g
+    shm_size: 8gb
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}
     container_name: geoserver
+    env_file:
+      - .env
     depends_on:
       - postgis
     volumes:
-      - ${AVOIN_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
+      - ${AVOIN_DATA_PATH}:/data
+      - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
     ports:
       - ${GEOSERVER_PORT}:8080
     restart: unless-stopped
-    env_file:
-      - ./.env
     healthcheck:
       test: curl --fail -s http://localhost:8080/ || exit 1
       interval: 1m30s
@@ -64,6 +64,7 @@ services:
       retries: 3
     networks:
      - proxy-net
+    shm_size: 8gb
 
 networks:
   proxy-net:

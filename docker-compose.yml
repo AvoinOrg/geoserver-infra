@@ -42,7 +42,10 @@ services:
       test: "exit 0"
     networks:
       - proxy-net
-    shm_size: 8gb
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_CONTAINER_MEM}
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}
@@ -64,7 +67,10 @@ services:
       retries: 3
     networks:
      - proxy-net
-    shm_size: 8gb
+    deploy:
+      resources:
+        limits:
+          memory: ${GEOSERVER_CONTAINER_MEM}
 
 networks:
   proxy-net:

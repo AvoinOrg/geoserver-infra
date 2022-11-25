@@ -42,6 +42,7 @@ services:
       test: "exit 0"
     networks:
       - proxy-net
+    shm_size: ${POSTGRES_CONTAINER_MEM}
     deploy:
       resources:
         limits:
@@ -67,6 +68,7 @@ services:
       retries: 3
     networks:
      - proxy-net
+    shm_size: ${GEOSERVER_CONTAINER_MEM}
     deploy:
       resources:
         limits:

@@ -73,6 +73,11 @@ services:
       resources:
         limits:
           memory: ${POSTGRES_CONTAINER_MEM}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}

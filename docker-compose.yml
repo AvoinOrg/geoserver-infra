@@ -61,7 +61,11 @@ services:
       - SSL_CA_FILE=${CERT_DIR}/server.crt
     restart: unless-stopped
     healthcheck:
-      test: "exit 0"
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - proxy-net
     shm_size: ${POSTGRES_CONTAINER_MEM}
@@ -95,6 +99,23 @@ services:
       resources:
         limits:
           memory: ${GEOSERVER_CONTAINER_MEM}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  autoheal:
+    image: willfarrell/autoheal
+    container_name: autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+      - DOCKER_SOCK=/var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - proxy-net
 
 networks:
   proxy-net:

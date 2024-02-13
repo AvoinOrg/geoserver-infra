@@ -1,0 +1,21 @@
+http:
+  routers:
+    geoserver:
+      rule: "Host(`{{env "DOMAIN"}}`) && PathPrefix(`/geoserver`)"
+      service: geoserver
+      # middlewares:
+      #   - geoserver-stripprefix
+      tls:
+        certResolver: myresolver
+
+  services:
+    geoserver:
+      loadBalancer:
+        servers:
+          - url: "{{env "GEOSERVER_URL"}}"
+
+    # old-auth-redirect:
+    #   redirectRegex:
+    #     regex: "^https?://{{env "OLD_AUTH_DOMAIN"}}/(.*)"
+    #     replacement: "https://{{env "AUTH_DOMAIN"}}/${1}"
+    #     permanent: true

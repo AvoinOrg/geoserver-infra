@@ -52,7 +52,7 @@ services:
       - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
       - /mnt/postgis-data:/var/lib/postgresql
     ports:
-      - ${POSTGRES_PORT}:5432
+      - ${PG_PORT}:5432
     environment:
       - FORCE_SSL=FALSE
       - SSL_DIR=${CERT_DIR}
@@ -83,7 +83,10 @@ services:
     image: kartoza/geoserver:${GS_VERSION}
     container_name: geoserver
     env_file:
-      - .env
+      - ./.env
+      - ./.geoserver.env
+    environment:
+      POSTGRES_PORT: 5432
     depends_on:
       - postgis
     volumes:

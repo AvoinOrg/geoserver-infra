@@ -52,7 +52,7 @@ services:
       - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
       - /mnt/postgis-data:/var/lib/postgresql
     ports:
-      - ${PG_PORT}:5432
+      - ${POSTGRES_PORT}:5432
     environment:
       - FORCE_SSL=FALSE
       - SSL_DIR=${CERT_DIR}
@@ -65,7 +65,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     networks:
       - proxy-net
     shm_size: ${POSTGRES_CONTAINER_MEM}
@@ -80,6 +80,44 @@ services:
         max-file: "3"
 
   geoserver:
+    image: kartoza/geoserver:${GS_VERSION}
+    container_name: geoserver
+    env_file:
+      - ./.env
+      - ./.geoserver.env
+    environment:
+      POSTGRES_PORT: 5432
+    depends_on:
+      - postgis
+    volumes:
+      - ${AVOIN_DATA_PATH}:/data
+      - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
+    ports:
+      - ${GEOSERVER_PORT}:8080
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        curl --fail --silent --location --max-redirs 5
+        "http://localhost:8080/geoserver/ows?service=WMS&request=GetCapabilities"
+        || exit 1
+      start_period: 120s
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+     - proxy-net
+    shm_size: ${GEOSERVER_CONTAINER_MEM}
+    deploy:
+      resources:
+        limits:
+          memory: ${GEOSERVER_CONTAINER_MEM}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  geoserver-test:
     image: kartoza/geoserver:${GS_VERSION}
     container_name: geoserver
     env_file:
@@ -112,7 +150,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-  
+
   autoheal:
     image: willfarrell/autoheal
     container_name: autoheal

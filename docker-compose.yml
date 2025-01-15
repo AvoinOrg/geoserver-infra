@@ -44,7 +44,7 @@ services:
       - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
       - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
       - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
-      - ${POSTGIS_DATA_DIR}:/var/lib/postgresql
+      - ${POSTGRES_DATA_DIR}:/var/lib/postgresql
     ports:
       - ${POSTGRES_PORT}:5432
     environment:

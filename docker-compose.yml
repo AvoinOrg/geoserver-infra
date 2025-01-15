@@ -46,7 +46,7 @@ services:
       - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
       - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
       - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
-      - /mnt/postgis-data:/var/lib/postgresql
+      - ${POSTGIS_DATA_DIR}:/var/lib/postgresql
     ports:
       - ${POSTGRES_PORT}:5432
     environment:
@@ -69,44 +69,6 @@ services:
       resources:
         limits:
           memory: ${POSTGRES_CONTAINER_MEM}
-
-  # postgis-sandbox:
-  #   image: kartoza/postgis:${POSTGRES_VERSION}
-  #   container_name: postgis-sandbox
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
-  #     - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
-  #     - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
-  #     - /mnt/postgis-data:/var/lib/postgresql
-  #   ports:
-  #     - ${POSTGRES_PORT}:5432
-  #   environment:
-  #     - FORCE_SSL=FALSE
-  #     - SSL_DIR=${CERT_DIR}
-  #     - SSL_CERT_FILE=${CERT_DIR}/fullchain.pem
-  #     - SSL_KEY_FILE=${CERT_DIR}/privkey.pem
-  #     - SSL_CA_FILE=${CERT_DIR}/server.crt
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432" ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 30s
-  #   networks:
-  #     - proxy-net
-  #   shm_size: ${POSTGRES_CONTAINER_MEM}
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: ${POSTGRES_CONTAINER_MEM}
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "3"
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}
@@ -140,40 +102,6 @@ services:
         limits:
           memory: ${GEOSERVER_CONTAINER_MEM}
 
-  # geoserver-sandbox:
-  #   image: kartoza/geoserver:${GS_VERSION}
-  #   container_name: geoserver-sandbox
-  #   env_file:
-  #     - ./.env
-  #     - ./.geoserver.sandbox.env
-  #   environment:
-  #     POSTGRES_PORT: 5432
-  #   depends_on:
-  #     - postgis
-  #   volumes:
-  #     - ${AVOIN_DATA_PATH}:/data
-  #     - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
-  #   ports:
-  #     - ${GEOSERVER_PORT}:8080
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: curl --fail -s -L http://localhost:8080/geoserver/web/ || exit 1
-  #     interval: 1m30s
-  #     timeout: 10s
-  #     retries: 3
-  #   networks:
-  #     - proxy-net
-  #   shm_size: ${GEOSERVER_CONTAINER_MEM}
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: ${GEOSERVER_CONTAINER_MEM}
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "3"
-
   autoheal:
     image: willfarrell/autoheal
     container_name: autoheal
@@ -188,4 +116,5 @@ services:
 
 networks:
   proxy-net:
+    name: ${NETWORK_NAME}
     external: true

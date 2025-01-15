@@ -2,50 +2,46 @@ version: "3.8"
 
 services:
   traefik:
-      image: traefik:${TRAEFIK_VERSION}
-      container_name: traefik
-      env_file:
-        - ./.env
-      command:
-        - --api.insecure=true
-        - --api.dashboard=true 
-        - --providers.docker=false
-        - --providers.file.filename=/etc/traefik/dynamic_conf.yml
-        - --providers.file.watch=true
-        - --entrypoints.web.address=:80
-        - --entrypoints.websecure.address=:443
-        - --certificatesresolvers.myresolver.acme.tlschallenge=true
-        - --certificatesresolvers.myresolver.acme.email=${DOMAIN_EMAIL}
-        - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-        # development acme server, without rate limits
-        # - --certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
-        - --certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
-        - --log.filePath=/logs/traefik.log
-        - --log.level=INFO
-      ports:
-        - 80:80
-        - 443:443
-        - 8090:8080
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        - ./letsencrypt:/letsencrypt
-        - ./dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
-        - ${AVOIN_LOGS_PATH}:/logs
-      networks:
-        - proxy-net
-      restart: unless-stopped
-      logging:
-        driver: json-file
-        options:
-          max-size: "10m"
-          max-file: "3"
-
+    image: traefik:${TRAEFIK_VERSION}
+    container_name: traefik
+    env_file:
+      - ./.env
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=false
+      - --providers.file.filename=/etc/traefik/dynamic_conf.yml
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.myresolver.acme.email=${DOMAIN_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      # development acme server, without rate limits
+      # - --certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
+      - --log.filePath=/logs/traefik.log
+      - --log.level=INFO
+    ports:
+      - 80:80
+      - 443:443
+      - 8090:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - ./dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
+      - ${AVOIN_LOGS_PATH}:/logs
+    networks:
+      - proxy-net
+    restart: unless-stopped
 
   postgis:
     image: kartoza/postgis:${POSTGRES_VERSION}
     container_name: postgis
     env_file:
-      - .env
+      - ./.env.postgis
+      - ./.env
     volumes:
       - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
       - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
@@ -61,7 +57,7 @@ services:
       - SSL_CA_FILE=${CERT_DIR}/server.crt
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h localhost -p 5432" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -73,22 +69,56 @@ services:
       resources:
         limits:
           memory: ${POSTGRES_CONTAINER_MEM}
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+
+  # postgis-sandbox:
+  #   image: kartoza/postgis:${POSTGRES_VERSION}
+  #   container_name: postgis-sandbox
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
+  #     - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
+  #     - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
+  #     - /mnt/postgis-data:/var/lib/postgresql
+  #   ports:
+  #     - ${POSTGRES_PORT}:5432
+  #   environment:
+  #     - FORCE_SSL=FALSE
+  #     - SSL_DIR=${CERT_DIR}
+  #     - SSL_CERT_FILE=${CERT_DIR}/fullchain.pem
+  #     - SSL_KEY_FILE=${CERT_DIR}/privkey.pem
+  #     - SSL_CA_FILE=${CERT_DIR}/server.crt
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 30s
+  #   networks:
+  #     - proxy-net
+  #   shm_size: ${POSTGRES_CONTAINER_MEM}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: ${POSTGRES_CONTAINER_MEM}
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}
     container_name: geoserver
     env_file:
+      - ./.env.geoserver
       - ./.env
-      - ./.geoserver.env
     environment:
       POSTGRES_PORT: 5432
     depends_on:
-      - postgis
+      postgis:
+        condition: service_healthy
     volumes:
       - ${AVOIN_DATA_PATH}:/data
       - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
@@ -97,59 +127,52 @@ services:
     restart: unless-stopped
     healthcheck:
       test: >
-        curl --fail --silent --location --max-redirs 5
-        "http://localhost:8080/geoserver/ows?service=WMS&request=GetCapabilities"
-        || exit 1
+        curl --fail --silent --location --max-redirs 5 "http://localhost:8080/geoserver/ows?service=WMS&request=GetCapabilities" || exit 1
       start_period: 120s
       interval: 1m30s
       timeout: 10s
       retries: 3
     networks:
-     - proxy-net
+      - proxy-net
     shm_size: ${GEOSERVER_CONTAINER_MEM}
     deploy:
       resources:
         limits:
           memory: ${GEOSERVER_CONTAINER_MEM}
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
 
-  geoserver-test:
-    image: kartoza/geoserver:${GS_VERSION}
-    container_name: geoserver
-    env_file:
-      - ./.env
-      - ./.geoserver.env
-    environment:
-      POSTGRES_PORT: 5432
-    depends_on:
-      - postgis
-    volumes:
-      - ${AVOIN_DATA_PATH}:/data
-      - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
-    ports:
-      - ${GEOSERVER_PORT}:8080
-    restart: unless-stopped
-    healthcheck:
-      test: curl --fail -s -L http://localhost:8080/geoserver/web/ || exit 1
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-    networks:
-     - proxy-net
-    shm_size: ${GEOSERVER_CONTAINER_MEM}
-    deploy:
-      resources:
-        limits:
-          memory: ${GEOSERVER_CONTAINER_MEM}
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # geoserver-sandbox:
+  #   image: kartoza/geoserver:${GS_VERSION}
+  #   container_name: geoserver-sandbox
+  #   env_file:
+  #     - ./.env
+  #     - ./.geoserver.sandbox.env
+  #   environment:
+  #     POSTGRES_PORT: 5432
+  #   depends_on:
+  #     - postgis
+  #   volumes:
+  #     - ${AVOIN_DATA_PATH}:/data
+  #     - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
+  #   ports:
+  #     - ${GEOSERVER_PORT}:8080
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: curl --fail -s -L http://localhost:8080/geoserver/web/ || exit 1
+  #     interval: 1m30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - proxy-net
+  #   shm_size: ${GEOSERVER_CONTAINER_MEM}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: ${GEOSERVER_CONTAINER_MEM}
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
   autoheal:
     image: willfarrell/autoheal

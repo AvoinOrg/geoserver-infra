@@ -1,3 +1,4 @@
 .env
-.geoserver.env
+.env.geoserver
+.env.postgis
 letsencrypt

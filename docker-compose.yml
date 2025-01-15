@@ -3,7 +3,6 @@ version: "3.8"
 services:
   traefik:
     image: traefik:${TRAEFIK_VERSION}
-    container_name: traefik
     env_file:
       - ./.env
     command:
@@ -38,7 +37,6 @@ services:
 
   postgis:
     image: kartoza/postgis:${POSTGRES_VERSION}
-    container_name: postgis
     env_file:
       - ./.env.postgis
       - ./.env
@@ -72,7 +70,6 @@ services:
 
   geoserver:
     image: kartoza/geoserver:${GS_VERSION}
-    container_name: geoserver
     env_file:
       - ./.env.geoserver
       - ./.env
@@ -104,7 +101,6 @@ services:
 
   autoheal:
     image: willfarrell/autoheal
-    container_name: autoheal
     environment:
       - AUTOHEAL_CONTAINER_LABEL=all
       - DOCKER_SOCK=/var/run/docker.sock

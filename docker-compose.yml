@@ -35,6 +35,38 @@ services:
       - proxy-net
     restart: unless-stopped
 
+  traefik_certs_dumper:
+    profiles: [ "default", "certs" ]
+    image: ldez/traefik-certs-dumper:latest
+    command: [
+       "file", 
+       "--source", "/letsencrypt/acme.json", 
+       "--dest", "/certs-output", 
+       "--domain-subdir=true", 
+       "--watch", 
+       "--version=v3",
+       "--post-hook", "/scripts/fix-permissions.sh"
+      ]
+    volumes:
+      - ./letsencrypt:/letsencrypt:ro
+      - ./letsencrypt-certs:/certs-output
+      - ./traefik_certs_dumper/fix-permissions.sh:/scripts/fix-permissions.sh:ro
+    environment:
+      # Dump as many separate .pem files:
+      - TCL_SELFSIGNED=true
+      # - TCD_CHOWN=${POSTGRES_UID}:${POSTGRES_GID}
+      # - TCD_CHMOD=0644
+      # - TCD_CHMOD_DIR=0755
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /certs-output/${DOMAIN}/privatekey.key"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+    networks:
+      - proxy-net
+
   postgis:
     image: kartoza/postgis:${POSTGRES_VERSION}
     env_file:
@@ -60,6 +92,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    # depends_on:
+    #   traefik_certs_dumper:
+    #     condition: service_healthy
     networks:
       - proxy-net
     shm_size: ${POSTGRES_CONTAINER_MEM}

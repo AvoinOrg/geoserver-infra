@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   traefik:
+    profiles: [ "default" ]
     image: traefik:${TRAEFIK_VERSION}
     env_file:
       - ./.env
@@ -19,8 +20,7 @@ services:
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
       # development acme server, without rate limits
       # - --certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
-      - --certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
-      - --log.filePath=/logs/traefik.log
+      # - --certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
       - --log.level=INFO
     ports:
       - 80:80
@@ -30,7 +30,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
       - ./dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
-      - ${AVOIN_LOGS_PATH}:/logs
     networks:
       - proxy-net
     restart: unless-stopped
@@ -68,23 +67,28 @@ services:
       - proxy-net
 
   postgis:
+    profiles: [ "default", "no-proxy", "pg-only" ]
     image: kartoza/postgis:${POSTGRES_VERSION}
+    # build:
+    #   context: ./postgis
+    #   dockerfile: Dockerfile
+    #   args:
+    #     - POSTGRES_VERSION=${POSTGRES_VERSION}
     env_file:
       - ./.env.postgis
       - ./.env
+    entrypoint: ["/scripts/custom/docker-entrypoint.sh"]
     volumes:
-      - ${CERT_DIR}/fullchain.pem:${CERT_DIR}/fullchain.pem
-      - ${CERT_DIR}/privkey.pem:${CERT_DIR}/privkey.pem
-      - ${CERT_DIR}/server.crt:${CERT_DIR}/server.crt
+      - ./postgis/custom-confs:/scripts/custom
+      - ./letsencrypt-certs:/letsencrypt-certs
       - ${POSTGRES_DATA_DIR}:/var/lib/postgresql
     ports:
       - ${POSTGRES_PORT}:5432
     environment:
-      - FORCE_SSL=FALSE
-      - SSL_DIR=${CERT_DIR}
-      - SSL_CERT_FILE=${CERT_DIR}/fullchain.pem
-      - SSL_KEY_FILE=${CERT_DIR}/privkey.pem
-      - SSL_CA_FILE=${CERT_DIR}/server.crt
+      - SSL_DIR=/letsencrypt-certs/${POSTGRES_SSL_DOMAIN}
+      - SSL_CERT_FILE=/letsencrypt-certs/${POSTGRES_SSL_DOMAIN}/certificate.crt
+      - SSL_KEY_FILE=/letsencrypt-certs/${POSTGRES_SSL_DOMAIN}/privatekey.key
+      - SSL_CA_FILE=/letsencrypt-certs/${POSTGRES_SSL_DOMAIN}/certificate.crt
     restart: unless-stopped
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h localhost -p 5432" ]
@@ -104,6 +108,7 @@ services:
           memory: ${POSTGRES_CONTAINER_MEM}
 
   geoserver:
+    profiles: [ "default", "no-proxy" ]
     image: kartoza/geoserver:${GS_VERSION}
     env_file:
       - ./.env.geoserver
@@ -135,6 +140,7 @@ services:
           memory: ${GEOSERVER_CONTAINER_MEM}
 
   autoheal:
+    profiles: [ "default", "no-proxy" ]
     image: willfarrell/autoheal
     environment:
       - AUTOHEAL_CONTAINER_LABEL=all
@@ -147,5 +153,8 @@ services:
 
 networks:
   proxy-net:
-    name: ${NETWORK_NAME}
-    external: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET}
+          gateway: ${NETWORK_GATEWAY}

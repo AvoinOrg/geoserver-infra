@@ -7,12 +7,24 @@ http:
       #   - geoserver-stripprefix
       tls:
         certResolver: myresolver
+    
+    geoserver-sandbox:
+      rule: "Host(`{{env "SANDBOX_DOMAIN"}}`) && PathPrefix(`/geoserver`)"
+      service: geoserver-sandbox
+      # middlewares:
+      #   - geoserver-stripprefix
+      tls:
+        certResolver: myresolver
 
   services:
     geoserver:
       loadBalancer:
         servers:
           - url: "{{env "GEOSERVER_URL"}}"
+    geoserver-sandbox:
+      loadBalancer:
+        servers:
+          - url: "{{env "SANDBOX_GEOSERVER_URL"}}"
 
     # old-auth-redirect:
     #   redirectRegex:

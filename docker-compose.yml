@@ -32,6 +32,7 @@ services:
       - ./dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
     networks:
       - proxy-net
+      - localhost-net
     restart: unless-stopped
 
   traefik_certs_dumper:
@@ -133,6 +134,7 @@ services:
       retries: 3
     networks:
       - proxy-net
+      - localhost-net
     shm_size: ${GEOSERVER_CONTAINER_MEM}
     deploy:
       resources:
@@ -158,3 +160,5 @@ networks:
       config:
         - subnet: ${NETWORK_SUBNET}
           gateway: ${NETWORK_GATEWAY}
+  localhost-net:
+    external: true

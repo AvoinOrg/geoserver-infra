@@ -30,6 +30,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
       - ./dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - proxy-net
     restart: unless-stopped

@@ -48,7 +48,7 @@ services:
       ]
     volumes:
       - ./letsencrypt:/letsencrypt:ro
-      - ./letsencrypt-certs:/certs-output
+      - ${CERTS_DIR}:/certs-output
       - ./traefik_certs_dumper/fix-permissions.sh:/scripts/fix-permissions.sh:ro
     environment:
       # Dump as many separate .pem files:
@@ -80,7 +80,7 @@ services:
     entrypoint: ["/scripts/custom/docker-entrypoint.sh"]
     volumes:
       - ./postgis/custom-confs:/scripts/custom
-      - ./letsencrypt-certs:/letsencrypt-certs
+      - ${CERTS_DIR}:/letsencrypt-certs
       - ${POSTGRES_DATA_DIR}:/var/lib/postgresql
     ports:
       - ${POSTGRES_PORT}:5432

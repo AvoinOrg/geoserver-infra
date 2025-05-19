@@ -105,18 +105,24 @@ services:
   geoserver:
     profiles: [ "default", "no-proxy" ]
     image: kartoza/geoserver:${GS_VERSION}
+    # build:
+    #   context: .
+    #   dockerfile: geoserver.dockerfile
+    #   args:
+    #     GS_VERSION: ${GS_VERSION}
     env_file:
       - ./.env.geoserver
       - ./.env
     environment:
       POSTGRES_PORT: 5432
-      STABLE_EXTENSIONS: authkey-plugin
+      COMMUNITY_EXTENSIONS: sec-oauth2-openid-connect-plugin
     depends_on:
       postgis:
         condition: service_healthy
     volumes:
       - ${AVOIN_DATA_PATH}:/data
       - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
+      - ./tomcat-conf/web.xml:/usr/local/tomcat/conf/web.xml:ro
     ports:
       - ${GEOSERVER_PORT}:8080
     restart: unless-stopped

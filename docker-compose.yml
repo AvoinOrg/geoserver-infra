@@ -122,7 +122,7 @@ services:
     volumes:
       - ${AVOIN_DATA_PATH}:/data
       - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
-      - ./tomcat-conf/web.xml:/usr/local/tomcat/conf/web.xml:ro
+      - ./tomcat-conf/web.xml:/usr/local/tomcat/conf/web.xml
     ports:
       - ${GEOSERVER_PORT}:8080
     restart: unless-stopped

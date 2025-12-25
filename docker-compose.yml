@@ -115,7 +115,7 @@ services:
       - ./.env
     environment:
       POSTGRES_PORT: 5432
-      COMMUNITY_EXTENSIONS: sec-oauth2-openid-connect-plugin
+      COMMUNITY_EXTENSIONS: sec-oauth2-openid-connect-plugin,cog-s3-plugin,cog-http-plugin
     depends_on:
       postgis:
         condition: service_healthy

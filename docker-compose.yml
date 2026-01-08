@@ -96,10 +96,10 @@ services:
     #     condition: service_healthy
     networks:
       - proxy-net
-    shm_size: ${POSTGRES_CONTAINER_MEM}
+    shm_size: 1g
     deploy:
       resources:
-        limits:
+        reservations:
           memory: ${POSTGRES_CONTAINER_MEM}
 
   geoserver:
@@ -136,10 +136,9 @@ services:
     networks:
       - proxy-net
       - localhost-net
-    shm_size: ${GEOSERVER_CONTAINER_MEM}
     deploy:
       resources:
-        limits:
+        reservations:
           memory: ${GEOSERVER_CONTAINER_MEM}
 
   autoheal:

@@ -122,6 +122,7 @@ services:
     volumes:
       - ${AVOIN_DATA_PATH}:/data
       - ${GEOSERVER_DATA_PATH}:${GEOSERVER_VOLUME_MOUNT}
+      - ${GEOSERVER_CACHE_PATH}:${GEOSERVER_VOLUME_MOUNT}/gwc
       - ./tomcat-conf/web.xml:/usr/local/tomcat/conf/web.xml
     ports:
       - ${GEOSERVER_PORT}:8080

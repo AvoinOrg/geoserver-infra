@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   traefik:
-    profiles: [ "default" ]
+    profiles: ["default"]
     image: traefik:${TRAEFIK_VERSION}
     env_file:
       - ./.env
@@ -38,9 +36,21 @@ services:
     restart: unless-stopped
 
   traefik_certs_dumper:
-    profiles: [ "default", "certs" ]
+    profiles: ["default", "certs"]
     image: ldez/traefik-certs-dumper:latest
-    command: [ "file", "--source", "/letsencrypt/acme.json", "--dest", "/certs-output", "--domain-subdir=true", "--watch", "--version=v3", "--post-hook", "/scripts/fix-permissions.sh" ]
+    command:
+      [
+        "file",
+        "--source",
+        "/letsencrypt/acme.json",
+        "--dest",
+        "/certs-output",
+        "--domain-subdir=true",
+        "--watch",
+        "--version=v3",
+        "--post-hook",
+        "/scripts/fix-permissions.sh",
+      ]
     volumes:
       - ./letsencrypt:/letsencrypt:ro
       - ${CERTS_DIR}:/certs-output
@@ -53,7 +63,7 @@ services:
       # - TCD_CHMOD_DIR=0755
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "test -f /certs-output/${DOMAIN}/privatekey.key" ]
+      test: ["CMD-SHELL", "test -f /certs-output/${DOMAIN}/privatekey.key"]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -62,17 +72,17 @@ services:
       - proxy-net
 
   postgis:
-    profiles: [ "default", "no-proxy", "pg-only" ]
+    profiles: ["default", "no-proxy", "pg-only"]
     image: kartoza/postgis:${POSTGRES_VERSION}
-    # build:
-    #   context: ./postgis
-    #   dockerfile: Dockerfile
-    #   args:
-    #     - POSTGRES_VERSION=${POSTGRES_VERSION}
+    build:
+      context: ./postgis
+      dockerfile: Dockerfile
+      args:
+        - POSTGRES_VERSION=${POSTGRES_VERSION}
     env_file:
       - ./.env.postgis
       - ./.env
-    entrypoint: [ "/scripts/custom/docker-entrypoint.sh" ]
+    entrypoint: ["/scripts/custom/docker-entrypoint.sh"]
     volumes:
       - ./postgis/custom-confs:/scripts/custom
       - ${CERTS_DIR}:/letsencrypt-certs
@@ -86,7 +96,11 @@ services:
       - SSL_CA_FILE=/letsencrypt-certs/${POSTGRES_SSL_DOMAIN}/certificate.crt
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h localhost -p 5432" ]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h localhost -p 5432",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -103,7 +117,7 @@ services:
           memory: ${POSTGRES_CONTAINER_MEM}
 
   geoserver:
-    profiles: [ "default", "no-proxy" ]
+    profiles: ["default", "no-proxy"]
     image: kartoza/geoserver:${GS_VERSION}
     # build:
     #   context: .
@@ -142,7 +156,7 @@ services:
           memory: ${GEOSERVER_CONTAINER_MEM}
 
   autoheal:
-    profiles: [ "default", "no-proxy" ]
+    profiles: ["default", "no-proxy"]
     image: willfarrell/autoheal
     environment:
       - AUTOHEAL_CONTAINER_LABEL=all

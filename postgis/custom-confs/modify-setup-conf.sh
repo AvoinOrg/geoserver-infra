@@ -12,7 +12,7 @@ if ! grep -q "$BLOCK_START" "$SCRIPT_FILE"; then
     exit 1
 fi
 
-# 2. Insert "max_connections = 1000" right after the "shared_buffers" line
-sed -i '/shared_buffers/a max_connections = 1000' "$SCRIPT_FILE"
+# 2. Insert custom PostgreSQL settings right after the "shared_buffers" line
+sed -i '/shared_buffers/a max_connections = 1000\njit = off' "$SCRIPT_FILE"
 
 echo "Successfully inserted settings in $SCRIPT_FILE."
